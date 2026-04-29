@@ -3,55 +3,30 @@ package handlers
 import (
 	"encoding/json"
 	"net/http"
-	"strconv"
-	"strings"
 
 	"go-task-api/internal/models"
 	"go-task-api/internal/services"
 )
 
-// GET /tasks
-func GetTasks(w http.ResponseWriter, r *http.Request) {
-	tasks := services.GetTasks()
-	json.NewEncoder(w).Encode(tasks)
-}
-
-// POST /tasks
 func CreateTask(w http.ResponseWriter, r *http.Request) {
 	var task models.Task
 	json.NewDecoder(r.Body).Decode(&task)
 
-	created := services.CreateTask(task)
-	json.NewEncoder(w).Encode(created)
-}
-
-// PUT /tasks/{id}
-func UpdateTask(w http.ResponseWriter, r *http.Request) {
-	idStr := strings.TrimPrefix(r.URL.Path, "/tasks/")
-	id, _ := strconv.Atoi(idStr)
-
-	var task models.Task
-	json.NewDecoder(r.Body).Decode(&task)
-
-	updated, ok := services.UpdateTask(id, task)
-	if !ok {
-		http.Error(w, "Task not found", http.StatusNotFound)
+	err := services.CreateTask(task)
+	if err != nil {
+		http.Error(w, "Failed to create task", http.StatusInternalServerError)
 		return
 	}
 
-	json.NewEncoder(w).Encode(updated)
+	w.WriteHeader(http.StatusCreated)
 }
 
-// DELETE /tasks/{id}
-func DeleteTask(w http.ResponseWriter, r *http.Request) {
-	idStr := strings.TrimPrefix(r.URL.Path, "/tasks/")
-	id, _ := strconv.Atoi(idStr)
-
-	ok := services.DeleteTask(id)
-	if !ok {
-		http.Error(w, "Task not found", http.StatusNotFound)
+func GetTasks(w http.ResponseWriter, r *http.Request) {
+	tasks, err := services.GetTasks()
+	if err != nil {
+		http.Error(w, "Failed to fetch tasks", http.StatusInternalServerError)
 		return
 	}
 
-	w.Write([]byte("Deleted successfully"))
+	json.NewEncoder(w).Encode(tasks)
 }
