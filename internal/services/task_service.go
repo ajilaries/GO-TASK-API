@@ -11,3 +11,9 @@ func CreateTask(task models.Task)error{
 func GetTasks() ([]models.Task , error){
 	return repository.GetTasks()
 }
+func DeleteTask(id int)error{
+	return repository.DeleteTask(id)
+}
+func UpdateTask(id int,title *string, completed *bool)error{
+	return repository.UpdateTask(id,title,completed)
+}
