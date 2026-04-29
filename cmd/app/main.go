@@ -2,13 +2,22 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 
 	"go-task-api/internal/handlers"
 	"go-task-api/pkg/database"
+
+	"github.com/joho/godotenv"
 )
 
 func main() {
+
+	//load .env file
+	err:= godotenv.Load()
+	if err !=nil{
+		log.Println("No .env file found")
+	}
 	database.ConnectDB()
 
 	mux := http.NewServeMux()
