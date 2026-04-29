@@ -3,7 +3,8 @@ package handlers
 import (
 	"encoding/json"
 	"net/http"
-
+	"strconv"
+	"strings"
 	"go-task-api/internal/models"
 	"go-task-api/internal/services"
 )
@@ -29,4 +30,35 @@ func GetTasks(w http.ResponseWriter, r *http.Request) {
 	}
 
 	json.NewEncoder(w).Encode(tasks)
+}
+func DeleteTask(w http.ResponseWriter, r *http.Request) {
+	idStr := strings.TrimPrefix(r.URL.Path, "/tasks/")
+	id, _ := strconv.Atoi(idStr)
+
+	err := services.DeleteTask(id)
+	if err != nil {
+		http.Error(w, "Failed to delete task", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+}
+func UpdateTask(w http.ResponseWriter, r *http.Request) {
+	idStr := strings.TrimPrefix(r.URL.Path, "/tasks/")
+	id, _ := strconv.Atoi(idStr)
+
+	var req struct {
+		Title     *string `json:"title"`
+		Completed *bool   `json:"completed"`
+	}
+
+	json.NewDecoder(r.Body).Decode(&req)
+
+	err := services.UpdateTask(id, req.Title, req.Completed)
+	if err != nil {
+		http.Error(w, "Failed to update task", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
 }
