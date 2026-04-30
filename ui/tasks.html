@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Task Manager</title>
+
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #0f172a, #1e293b);
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            background: #1e293b;
+            padding: 25px;
+            border-radius: 15px;
+            width: 420px;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.5);
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        input {
+            flex: 1;
+            padding: 10px;
+            border-radius: 8px;
+            border: none;
+            outline: none;
+        }
+
+        .add-btn {
+            background: #38bdf8;
+            color: black;
+            font-weight: bold;
+        }
+
+        .add-btn:hover {
+            background: #0ea5e9;
+        }
+
+        ul {
+            list-style: none;
+            padding: 0;
+            margin-top: 20px;
+        }
+
+        li {
+            background: #334155;
+            padding: 12px;
+            margin-bottom: 10px;
+            border-radius: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: 0.2s;
+        }
+
+        li:hover {
+            transform: scale(1.02);
+        }
+
+        .completed span {
+            text-decoration: line-through;
+            opacity: 0.6;
+        }
+
+        .actions button {
+            margin-left: 5px;
+            padding: 6px 10px;
+            font-size: 12px;
+        }
+
+        .delete-btn {
+            background: #f87171;
+            color: white;
+        }
+
+        .complete-btn {
+            background: #4ade80;
+            color: black;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+    <h1>🚀 Task Manager</h1>
+
+    <div class="input-group">
+        <input type="text" id="taskInput" placeholder="Enter task...">
+        <button class="add-btn" onclick="addTask()">Add</button>
+    </div>
+
+    <ul id="taskList"></ul>
+</div>
+
+<script>
+const API_URL = "http://localhost:8080/tasks";
+
+async function loadTasks() {
+    const res = await fetch(API_URL);
+    const tasks = await res.json();
+
+    const list = document.getElementById("taskList");
+    list.innerHTML = "";
+
+    tasks.forEach(task => {
+        const li = document.createElement("li");
+
+        if (task.completed) {
+            li.classList.add("completed");
+        }
+
+        li.innerHTML = `
+            <span>${task.title}</span>
+            <div class="actions">
+                <button class="complete-btn" onclick="toggleTask(${task.id}, ${task.completed})">
+                    ${task.completed ? "Undo" : "Done"}
+                </button>
+                <button class="delete-btn" onclick="deleteTask(${task.id})">
+                    Delete
+                </button>
+            </div>
+        `;
+
+        list.appendChild(li);
+    });
+}
+
+async function addTask() {
+    const input = document.getElementById("taskInput");
+
+    if (!input.value.trim()) return;
+
+    await fetch(API_URL, {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({
+            title: input.value,
+            completed: false
+        })
+    });
+
+    input.value = "";
+    loadTasks();
+}
+
+// These need backend support
+async function deleteTask(id) {
+    await fetch(`${API_URL}/${id}`, {
+        method: "DELETE"
+    });
+    loadTasks();
+}
+
+async function toggleTask(id, completed) {
+    await fetch(`${API_URL}/${id}`, {
+        method: "PUT",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({
+            completed: !completed
+        })
+    });
+    loadTasks();
+}
+
+loadTasks();
+</script>
+
+</body>
+</html>
