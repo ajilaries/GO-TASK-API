@@ -1,8 +1,16 @@
 <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Signup </title>
+</head>
+<body>
+    <!DOCTYPE html>
 
 <html>
 <head>
-    <title>Login</title>
+    <title>Signup</title>
     <style>
         body {
             font-family: Arial;
@@ -27,7 +35,7 @@
             border: none;
         }
         button {
-            background: #38bdf8;
+            background: #4ade80;
             font-weight: bold;
             cursor: pointer;
         }
@@ -43,15 +51,15 @@
 <body>
 
 <div class="box">
-    <h2>🔐 Login</h2>
+    <h2>📝 Signup</h2>
 
 ```
 <input type="email" id="email" placeholder="Email">
 <input type="password" id="password" placeholder="Password">
 
-<button onclick="login()">Login</button>
+<button onclick="signup()">Register</button>
 
-<div class="link" onclick="goSignup()">Create account</div>
+<div class="link" onclick="goLogin()">Back to login</div>
 ```
 
 </div>
@@ -59,31 +67,32 @@
 <script>
 const API = "http://localhost:8080";
 
-function goSignup() {
-    window.location.href = "signup.html";
+function goLogin() {
+    window.location.href = "index.html";
 }
 
-async function login() {
+async function signup() {
     const email = document.getElementById("email").value;
     const password = document.getElementById("password").value;
 
-    const res = await fetch(API + "/login", {
+    const res = await fetch(API + "/register", {
         method: "POST",
         headers: {"Content-Type": "application/json"},
         body: JSON.stringify({ email, password })
     });
 
     if (!res.ok) {
-        alert("Login failed");
+        alert("Signup failed");
         return;
     }
 
-    const data = await res.json();
-    localStorage.setItem("token", data.token);
-
-    window.location.href = "tasks.html";
+    alert("Registered successfully");
+    window.location.href = "index.html";
 }
 </script>
+
+</body>
+</html>
 
 </body>
 </html>
