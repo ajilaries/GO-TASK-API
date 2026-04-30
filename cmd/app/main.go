@@ -7,8 +7,8 @@ import (
 
 	"go-task-api/internal/handlers"
 	"go-task-api/pkg/database"
-
 	"github.com/joho/godotenv"
+	"go-task-api/internal/middleware"
 )
 
 func main() {
@@ -20,23 +20,29 @@ func main() {
 	}
 	database.ConnectDB()
 
-	mux := http.NewServeMux()
+mux := http.NewServeMux()
 
-	mux.HandleFunc("/tasks", func(w http.ResponseWriter, r *http.Request) {
-		if r.Method == http.MethodPost {
-			handlers.CreateTask(w, r)
-		} else if r.Method == http.MethodGet {
-			handlers.GetTasks(w, r)
-		}
-	})
-	mux.HandleFunc("/tasks/", func(w http.ResponseWriter, r *http.Request) {
+// 🔓 Public routes
+mux.HandleFunc("/register", handlers.Register)
+mux.HandleFunc("/login", handlers.Login)
+
+// 🔒 Protected: GET + POST
+mux.Handle("/tasks", middleware.AuthMiddleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	if r.Method == http.MethodGet {
+		handlers.GetTasks(w, r)
+	} else if r.Method == http.MethodPost {
+		handlers.CreateTask(w, r)
+	}
+})))
+
+// 🔒 Protected: DELETE + PUT
+mux.Handle("/tasks/", middleware.AuthMiddleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodDelete {
 		handlers.DeleteTask(w, r)
 	} else if r.Method == http.MethodPut {
 		handlers.UpdateTask(w, r)
 	}
-})
-
+})))
 	fmt.Println("🚀 Server running on :8080")
 	http.ListenAndServe(":8080", enableCORS(mux))
 }
