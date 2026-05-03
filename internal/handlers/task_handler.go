@@ -7,6 +7,7 @@ import (
 	"strings"
 	"go-task-api/internal/models"
 	"go-task-api/internal/services"
+	"github.com/gorilla/mux"
 )
 
 func CreateTask(w http.ResponseWriter, r *http.Request) {
@@ -22,14 +23,19 @@ func CreateTask(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 }
 
-func GetTasks(w http.ResponseWriter, r *http.Request) {
-	tasks, err := services.GetTasks()
-	if err != nil {
-		http.Error(w, "Failed to fetch tasks", http.StatusInternalServerError)
-		return
+func GetTaskByID(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	params := mux.Vars(r)
+	id := params["id"]
+
+	// TODO: replace with DB/service call
+	task := map[string]string{
+		"id":    id,
+		"title": "Sample Task",
 	}
 
-	json.NewEncoder(w).Encode(tasks)
+	json.NewEncoder(w).Encode(task)
 }
 func DeleteTask(w http.ResponseWriter, r *http.Request) {
 	idStr := strings.TrimPrefix(r.URL.Path, "/tasks/")
