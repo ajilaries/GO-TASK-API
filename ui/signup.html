@@ -1,98 +1,36 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Signup </title>
+  <meta charset="UTF-8" />
+  <title>Sign Up</title>
+
+  <link rel="stylesheet" href="css/signup.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;600&display=swap" rel="stylesheet">
 </head>
 <body>
-    <!DOCTYPE html>
 
-<html>
-<head>
-    <title>Signup</title>
-    <style>
-        body {
-            font-family: Arial;
-            background: #0f172a;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            color: white;
-        }
-        .box {
-            background: #1e293b;
-            padding: 30px;
-            border-radius: 12px;
-            width: 300px;
-        }
-        input, button {
-            width: 100%;
-            padding: 10px;
-            margin-top: 10px;
-            border-radius: 8px;
-            border: none;
-        }
-        button {
-            background: #4ade80;
-            font-weight: bold;
-            cursor: pointer;
-        }
-        .link {
-            margin-top: 10px;
-            text-align: center;
-            cursor: pointer;
-            color: #38bdf8;
-        }
-    </style>
-</head>
+  <div class="signup-container">
+    <div class="signup-card">
 
-<body>
+      <h2>Create Account 🚀</h2>
+      <p>Join and start managing your tasks</p>
 
-<div class="box">
-    <h2>📝 Signup</h2>
+      <form id="signupForm">
+        <input type="text" id="name" placeholder="Full Name" required />
+        <input type="email" id="email" placeholder="Email" required />
+        <input type="password" id="password" placeholder="Password" required />
+        <input type="password" id="confirmPassword" placeholder="Confirm Password" required />
 
-```
-<input type="email" id="email" placeholder="Email">
-<input type="password" id="password" placeholder="Password">
+        <button type="submit">Sign Up</button>
+      </form>
 
-<button onclick="signup()">Register</button>
+      <span class="login-link">
+        Already have an account? <a href="login.html">Login</a>
+      </span>
 
-<div class="link" onclick="goLogin()">Back to login</div>
-```
+    </div>
+  </div>
 
-</div>
-
-<script>
-const API = "http://localhost:8080";
-
-function goLogin() {
-    window.location.href = "index.html";
-}
-
-async function signup() {
-    const email = document.getElementById("email").value;
-    const password = document.getElementById("password").value;
-
-    const res = await fetch(API + "/register", {
-        method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({ email, password })
-    });
-
-    if (!res.ok) {
-        alert("Signup failed");
-        return;
-    }
-
-    alert("Registered successfully");
-    window.location.href = "index.html";
-}
-</script>
-
-</body>
-</html>
-
+  <script src="js/signup.js"></script>
 </body>
 </html>

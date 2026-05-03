@@ -6,14 +6,13 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-var secretKey = []byte("supersecretkey") // later move to .env
+var secretKey=[]byte("supersecretkey")
 
-func GenerateToken(userID int) (string, error) {
-	claims := jwt.MapClaims{
-		"user_id": userID,
-		"exp":     time.Now().Add(time.Hour * 24).Unix(),
-	}
+func GenerateToken(userID string)(string , error){
+	token:= jwt.NewWithClaims(jwt.SigningMethodHS256,jwt.MapClaims{
+		"user_id":userID,
+		"exp":time.Now().Add(time.Hour*24).Unix(),//24 hr delay
 
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	})
 	return token.SignedString(secretKey)
 }
