@@ -9,6 +9,9 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+// 🔐 use constant instead of magic number
+const bcryptCost = 10
+
 // REGISTER
 func Register(email, password string) error {
 
@@ -20,7 +23,7 @@ func Register(email, password string) error {
 		return errors.New("password must be at least 6 characters")
 	}
 
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), 10)
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcryptCost)
 	if err != nil {
 		return err
 	}
@@ -32,28 +35,34 @@ func Register(email, password string) error {
 
 	return repository.CreateUser(user)
 }
-//Login
 
-func Login(email, password string)(string, error){
-	if email==""|| password==""{
-		return "",errors.New("Email and password already exists")
+// LOGIN
+func Login(email, password string) (string, error) {
+
+	if email == "" || password == "" {
+		return "", errors.New("email and password required")
 	}
-	user, err:=repository.GetUserByEmail(email)
-	if err!=nil{
-		return "", errors.New("User not found")
+
+	user, err := repository.GetUserByEmail(email)
+	if err != nil {
+		// 🔐 don't reveal if user exists
+		return "", errors.New("invalid credentials")
 	}
-	err=bcrypt.CompareHashAndPassword(
+
+	err = bcrypt.CompareHashAndPassword(
 		[]byte(user.Password),
 		[]byte(password),
 	)
-	if err!= nil{
-		return "", errors.New("Invalid password")
-	}
-	//generate JWT
-	token, err := GenerateToken(user.ID)
-	if err!= nil{
-		return "", err
 
+	if err != nil {
+		return "", errors.New("invalid credentials")
 	}
-	return  token, nil
+
+	// 🔥 generate JWT with user_id
+	token, err := GenerateToken(user.ID)
+	if err != nil {
+		return "", err
+	}
+
+	return token, nil
 }
