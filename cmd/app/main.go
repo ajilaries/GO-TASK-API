@@ -1,64 +1,49 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 
-	"go-task-api/internal/handlers"
-	"go-task-api/pkg/database"
+	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
+
+	"go-task-api/internal/handlers"
 	"go-task-api/internal/middleware"
+	"go-task-api/pkg/database"
 )
 
 func main() {
 
-	//load .env file
-	err:= godotenv.Load()
-	if err !=nil{
+	// Load .env
+	err := godotenv.Load()
+	if err != nil {
 		log.Println("No .env file found")
 	}
+
+	// Connect DB
 	database.ConnectDB()
 
-mux := http.NewServeMux()
+	// Router
+	router := mux.NewRouter()
 
-// 🔓 Public routes
-mux.HandleFunc("/register", handlers.Register)
-mux.HandleFunc("/login", handlers.Login)
+	// 🌐 Global Middleware
+	router.Use(middleware.Logging)
+	router.Use(middleware.CORS)         
 
-// 🔒 Protected: GET + POST
-mux.Handle("/tasks", middleware.AuthMiddleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-	if r.Method == http.MethodGet {
-		handlers.GetTasks(w, r)
-	} else if r.Method == http.MethodPost {
-		handlers.CreateTask(w, r)
-	}
-})))
+	// 🔓 Public Routes
+	router.HandleFunc("/register", handlers.Register).Methods("POST")
+	router.HandleFunc("/login", handlers.Login).Methods("POST")
 
-// 🔒 Protected: DELETE + PUT
-mux.Handle("/tasks/", middleware.AuthMiddleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-	if r.Method == http.MethodDelete {
-		handlers.DeleteTask(w, r)
-	} else if r.Method == http.MethodPut {
-		handlers.UpdateTask(w, r)
-	}
-})))
-	fmt.Println("🚀 Server running on :8080")
-	http.ListenAndServe(":8080", enableCORS(mux))
-}
-func enableCORS(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	// 🔒 Protected Routes
+	protected := router.PathPrefix("/tasks").Subrouter()
+	protected.Use(middleware.AuthMiddleware)
 
-		w.Header().Set("Access-Control-Allow-Origin", "*")
-		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+	// protected.HandleFunc("", handlers.GetTasks).Methods("GET")
+	protected.HandleFunc("", handlers.CreateTask).Methods("POST")
+	protected.HandleFunc("/{id}", handlers.GetTaskByID).Methods("GET")
+	protected.HandleFunc("/{id}", handlers.UpdateTask).Methods("PUT")
+	protected.HandleFunc("/{id}", handlers.DeleteTask).Methods("DELETE")
 
-		// 🔥 VERY IMPORTANT (this fixes your issue)
-		if r.Method == http.MethodOptions {
-			w.WriteHeader(http.StatusOK)
-			return
-		}
-
-		next.ServeHTTP(w, r)
-	})
+	log.Println("🚀 Server running on :8080")
+	http.ListenAndServe(":8080", router)
 }
