@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"go-task-api/internal/services"
+	"go-task-api/internal/utils"
 )
 
 type AuthRequest struct {
@@ -14,30 +15,59 @@ type AuthRequest struct {
 
 // REGISTER
 func Register(w http.ResponseWriter, r *http.Request) {
-	var req AuthRequest
-	json.NewDecoder(r.Body).Decode(&req)
+	w.Header().Set("Content-Type", "application/json")
 
-	err := services.Register(req.Email, req.Password)
-	if err != nil {
-		http.Error(w, "Failed to register", http.StatusInternalServerError)
+	var req AuthRequest
+
+	// ✅ Safe decode
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(utils.Response{
+			Error: "Invalid request body",
+		})
 		return
 	}
 
-	w.Write([]byte("User registered successfully"))
+	err := services.Register(req.Email, req.Password)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(utils.Response{
+			Error: err.Error(),
+		})
+		return
+	}
+
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(utils.Response{
+		Message: "User registered successfully",
+	})
 }
 
 // LOGIN
 func Login(w http.ResponseWriter, r *http.Request) {
-	var req AuthRequest
-	json.NewDecoder(r.Body).Decode(&req)
+	w.Header().Set("Content-Type", "application/json")
 
-	token, err := services.Login(req.Email, req.Password)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusUnauthorized)
+	var req AuthRequest
+
+	// ✅ Safe decode
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(utils.Response{
+			Error: "Invalid request body",
+		})
 		return
 	}
 
-	json.NewEncoder(w).Encode(map[string]string{
-		"token": token,
+	token, err := services.Login(req.Email, req.Password)
+	if err != nil {
+		w.WriteHeader(http.StatusUnauthorized)
+		json.NewEncoder(w).Encode(utils.Response{
+			Error: err.Error(),
+		})
+		return
+	}
+
+	json.NewEncoder(w).Encode(utils.Response{
+		Token: token,
 	})
 }

@@ -13,29 +13,27 @@ import (
 const bcryptCost = 10
 
 // REGISTER
-func Register(email, password string) error {
 
-	if email == "" || password == "" {
-		return errors.New("email and password required")
+func Register(email, password string)error{
+	if email ==""|| password==""{
+		return errors.New("Email and password can't be empty")
 	}
 
-	if len(password) < 6 {
-		return errors.New("password must be at least 6 characters")
+	existingUser, err:= repository.GetUserByEmail(email)
+	if err==nil && existingUser.ID!=""{
+		return errors.New("Email already registered")
 	}
-
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcryptCost)
-	if err != nil {
+	hashedPassword , err:= bcrypt.GenerateFromPassword([]byte(password),bcryptCost)
+	if err!=nil{
 		return err
 	}
-
-	user := models.User{
-		Email:    email,
+	user:=models.User{
+		Email: email,
 		Password: string(hashedPassword),
-	}
 
+	}
 	return repository.CreateUser(user)
 }
-
 // LOGIN
 func Login(email, password string) (string, error) {
 

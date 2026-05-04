@@ -4,46 +4,45 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/gorilla/mux"
-	"github.com/joho/godotenv"
-
 	"go-task-api/internal/handlers"
 	"go-task-api/internal/middleware"
 	"go-task-api/pkg/database"
+	"github.com/joho/godotenv"
+	"github.com/go-chi/chi/v5"
+	
 )
 
 func main() {
-
-	// Load .env
-	err := godotenv.Load()
-	if err != nil {
+	//load .env file
+	err:= godotenv.Load()
+	if err!=nil{
 		log.Println("No .env file found")
 	}
-
-	// Connect DB
+	//db connectivity
 	database.ConnectDB()
 
-	// Router
-	router := mux.NewRouter()
+	r := chi.NewRouter()
 
-	// 🌐 Global Middleware
-	router.Use(middleware.Logging)
-	router.Use(middleware.CORS)         
+	// 🌐 Global middleware
+	r.Use(middleware.CORS)
+	r.Use(middleware.Logging)
 
-	// 🔓 Public Routes
-	router.HandleFunc("/register", handlers.Register).Methods("POST")
-	router.HandleFunc("/login", handlers.Login).Methods("POST")
+	// 🔓 Public routes
+	r.Post("/register", handlers.Register)
+	r.Post("/login", handlers.Login)
 
-	// 🔒 Protected Routes
-	protected := router.PathPrefix("/tasks").Subrouter()
-	protected.Use(middleware.AuthMiddleware)
+	// 🔒 Protected routes
+	r.Route("/tasks", func(r chi.Router) {
 
-	// protected.HandleFunc("", handlers.GetTasks).Methods("GET")
-	protected.HandleFunc("", handlers.CreateTask).Methods("POST")
-	protected.HandleFunc("/{id}", handlers.GetTaskByID).Methods("GET")
-	protected.HandleFunc("/{id}", handlers.UpdateTask).Methods("PUT")
-	protected.HandleFunc("/{id}", handlers.DeleteTask).Methods("DELETE")
+		r.Use(middleware.AuthMiddleware)
+
+		// r.Get("/", handlers.GetTasks)
+		r.Post("/", handlers.CreateTask)
+		r.Put("/{id}", handlers.UpdateTask)
+		r.Delete("/{id}", handlers.DeleteTask)
+		r.Get("/{id}", handlers.GetTaskByID)
+	})
 
 	log.Println("🚀 Server running on :8080")
-	http.ListenAndServe(":8080", router)
+	http.ListenAndServe(":8080", r)
 }
