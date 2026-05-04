@@ -22,7 +22,7 @@ document.getElementById("loginForm").addEventListener("submit", async (e) => {
       localStorage.setItem("token", data.token);
 
       // Redirect
-      window.location.href = "dashboard.html";
+      window.location.href = "tasks.html";
     } else {
       alert(data.message || "Login failed");
     }
