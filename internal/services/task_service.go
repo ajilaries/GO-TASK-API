@@ -5,15 +5,27 @@ import (
 	"go-task-api/internal/repository"
 )
 
-func CreateTask(task models.Task)error{
+// CREATE
+func CreateTask(task models.Task) error {
 	return repository.CreateTask(task)
 }
-func GetTasks() ([]models.Task , error){
-	return repository.GetTasks()
+
+// GET ALL (user-specific)
+func GetTasksByUser(userID string) ([]models.Task, error) {
+	return repository.GetTasksByUser(userID)
 }
-func DeleteTask(id int)error{
-	return repository.DeleteTask(id)
+
+// GET ONE
+func GetTaskByID(id int, userID string) (*models.Task, error) {
+	return repository.GetTaskByID(id, userID)
 }
-func UpdateTask(id int,title *string, completed *bool)error{
-	return repository.UpdateTask(id,title,completed)
+
+// DELETE (secure)
+func DeleteTask(id int, userID string) error {
+	return repository.DeleteTask(id, userID)
+}
+
+// UPDATE (secure)
+func UpdateTask(id int, userID string, title *string, completed *bool) error {
+	return repository.UpdateTask(id, userID, title, completed)
 }
