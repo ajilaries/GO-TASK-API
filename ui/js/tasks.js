@@ -1,34 +1,52 @@
 const API_URL = "http://localhost:8080/tasks";
 
-function logout() {
-    localStorage.removeItem("token");
-    window.location.href = "login.html";
+function getToken() {
+    return localStorage.getItem("token");
 }
 
+function logout() {
+    localStorage.removeItem("token");
+    window.location.href = "index.html";
+}
+
+// 🔐 redirect if not logged in
+if (!getToken()) {
+    window.location.href = "index.html";
+}
+
+// 🚀 LOAD TASKS AUTOMATICALLY
 async function loadTasks() {
-    const res = await fetch(API_URL);
-    const tasks = await res.json();
+    const res = await fetch(API_URL, {
+        headers: {
+            "Authorization": "Bearer " + getToken()
+        }
+    });
+
+    if (!res.ok) {
+        console.error("Failed:", res.status);
+        return;
+    }
+
+    const result = await res.json();
+    const tasks = result.data || [];
 
     const list = document.getElementById("taskList");
-    const count = document.getElementById("taskCount");
-
     list.innerHTML = "";
-    count.textContent = `${tasks.length} Tasks`;
 
     tasks.forEach(task => {
         const li = document.createElement("li");
 
-        if (task.completed) {
-            li.classList.add("completed");
-        }
-
         li.innerHTML = `
-            <span>${task.title}</span>
-            <div class="actions">
-                <button class="complete-btn" onclick="toggleTask(${task.id}, ${task.completed})">
+            <span style="${task.completed ? 'text-decoration:line-through;' : ''}">
+                ${task.title}
+            </span>
+
+            <div>
+                <button onclick="toggleTask(${task.id}, ${task.completed})">
                     ${task.completed ? "Undo" : "Done"}
                 </button>
-                <button class="delete-btn" onclick="deleteTask(${task.id})">
+
+                <button onclick="deleteTask(${task.id})">
                     Delete
                 </button>
             </div>
@@ -38,6 +56,7 @@ async function loadTasks() {
     });
 }
 
+// ➕ ADD
 async function addTask() {
     const input = document.getElementById("taskInput");
 
@@ -45,7 +64,10 @@ async function addTask() {
 
     await fetch(API_URL, {
         method: "POST",
-        headers: {"Content-Type": "application/json"},
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer " + getToken()
+        },
         body: JSON.stringify({
             title: input.value,
             completed: false
@@ -53,23 +75,36 @@ async function addTask() {
     });
 
     input.value = "";
-    loadTasks();
+    loadTasks(); // 🔥 auto refresh
 }
 
+// ❌ DELETE
 async function deleteTask(id) {
-    await fetch(`${API_URL}/${id}`, { method: "DELETE" });
+    await fetch(`${API_URL}/${id}`, {
+        method: "DELETE",
+        headers: {
+            "Authorization": "Bearer " + getToken()
+        }
+    });
+
     loadTasks();
 }
 
+// 🔁 UPDATE
 async function toggleTask(id, completed) {
     await fetch(`${API_URL}/${id}`, {
         method: "PUT",
-        headers: {"Content-Type": "application/json"},
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer " + getToken()
+        },
         body: JSON.stringify({
             completed: !completed
         })
     });
+
     loadTasks();
 }
 
+// 🔥 LOAD ON PAGE OPEN
 loadTasks();
