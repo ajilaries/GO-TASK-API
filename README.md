@@ -57,7 +57,7 @@ go-task-api/
 ### 1️⃣ Clone the repository
 
 ```
-git clone https://github.com/your-username/go-task-api.git
+git clone https://github.com/ajilaries/GO-TASK-API.git
 cd go-task-api
 ```
 
